@@ -6,31 +6,33 @@ import jakarta.xml.soap.SOAPEnvelope;
 import jakarta.xml.soap.SOAPMessage;
 import jakarta.xml.ws.Dispatch;
 import jakarta.xml.ws.Service;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.apache.cxf.transport.http.HttpConduitConfig;
+import org.apache.cxf.transport.http.HttpConduitFeature;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
+import org.junit.Test;
 
 import javax.xml.namespace.QName;
 import java.net.URL;
 import java.util.Map;
 
-public class CxfIssue extends TestCase {
+public class CxfIssueTest {
 
-    public CxfIssue(String testName) {
-        super(testName);
-    }
-
-    public static Test suite() {
-        return new TestSuite(CxfIssue.class);
-    }
-
+    @Test
     public void testApp() throws Exception {
         System.out.println("Start");
         URL wsdlURL = new URL("http://www.google.com:88/calculator.asmx?WSDL");
         //URL wsdlURL = new URL("http://www.dneonline.com/calculator.asmx?WSDL");
         QName serviceName = new QName("http://tempuri.org/", "Calculator");
         QName portName = new QName("http://tempuri.org/", "CalculatorSoap");
-        Service service = Service.create(wsdlURL, serviceName);
+        final HttpConduitFeature httpConduitFeature = new HttpConduitFeature();
+        final HttpConduitConfig conduitConfig = new HttpConduitConfig();
+        final HTTPClientPolicy clientPolicy = new HTTPClientPolicy();
+        clientPolicy.setMaxRetransmits(1);
+        clientPolicy.setConnectionRequestTimeout(1000);
+        clientPolicy.setConnectionTimeout(1500);
+        conduitConfig.setClientPolicy(clientPolicy);
+        httpConduitFeature.setConduitConfig(conduitConfig);
+        Service service = Service.create(wsdlURL, serviceName, httpConduitFeature);
         Dispatch<SOAPMessage> dispatch = service.createDispatch(portName, SOAPMessage.class, Service.Mode.MESSAGE);
         SOAPMessage request = createSOAPRequest(10, 5);
         Map<String, Object> requestContext = dispatch.getRequestContext();

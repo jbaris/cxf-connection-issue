@@ -5,7 +5,7 @@ The issue is that if the endpoint is not reachable, the client will loop forever
 # How to reproduce the issue
 Just run:
 
-    mvn test 
+    ./mvnw test 
 
 You will see an error like:
 
